@@ -1,6 +1,6 @@
 [package]
-name = "html_table_csv_converter"
-version = "0.1.0"
+name = "html-table-csv-converter"
+version = "0.0.1"
 edition = "2021"
 
 [dependencies]

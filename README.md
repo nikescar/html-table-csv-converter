@@ -67,3 +67,8 @@ To run tests:
 ```bash
 cargo test
 ```
+
+To run example:
+```bash
+cargo run -- https://gist.githubusercontent.com/bella92/4184664/raw/82982ace341d5a579ad53b53a47bcf58c7dea5ee/1.%2520Fresh-fruits
+```
