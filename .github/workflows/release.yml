@@ -48,9 +48,9 @@ jobs:
             target: i686-unknown-freebsd
             build-args: "--release"
 
-          - name: Android aarch64
-            target: aarch64-linux-android
-            build-args: "--release"
+          #- name: Android aarch64
+          #  target: aarch64-linux-android
+          #  build-args: "--release"
 
           - name: Android armv7
             target: armv7-linux-androideabi
