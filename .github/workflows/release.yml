@@ -177,7 +177,8 @@ jobs:
               then
                   cp LICENSE* "$i"
                   cp README.md "$i"
-                  chmod +x "$i/${{ env.BIN_NAME }}"
+                  chmod +x "$i/${{ env.BIN_NAME }}" 1>/dev/null 2>&1 || true
+                  chmod +x "$i/${{ env.BIN_NAME }}.exe" 1>/dev/null 2>&1 || true
                   tar -cvpzf "${i}.tar.gz" --directory=${i} .
               fi
           done
