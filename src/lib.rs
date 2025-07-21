@@ -140,17 +140,18 @@ fn clean_cell_content(content: &str) -> String {
         .join(" ")
 }
 
-// Download HTML from a URL using reqwest
+// Download HTML from a URL using ureq
 pub fn download_html(url: &str) -> Result<String, String> {
-    match reqwest::blocking::get(url) {
-        Ok(response) => {
-            if response.status().is_success() {
-                match response.text() {
-                    Ok(html) => Ok(html),
+    match ureq::get(url).call() {
+        Ok(mut response) => {
+            let status = response.status();
+            if status == 200 {
+                match response.body_mut().read_to_string() {
+                    Ok(content) => Ok(content),
                     Err(e) => Err(format!("Failed to read response body: {}", e)),
                 }
             } else {
-                Err(format!("HTTP request failed with status: {}", response.status()))
+                Err(format!("HTTP request failed with status: {}", status))
             }
         }
         Err(e) => Err(format!("Failed to make HTTP request to {}: {}", url, e)),
