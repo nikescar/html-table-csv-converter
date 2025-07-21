@@ -1,64 +1,69 @@
-# [![Coursera Course](./resources/banner.svg)](https://insight.paiml.com/nvd "Coursera Course")
+# HTML Table to CSV Converter
 
-# Rust CLI Example
+This Rust application downloads HTML content from a URL, extracts HTML tables, and converts them to CSV format.
 
-A small Rust CLI example you can use to build on. With an emphasis on Linux and creating automation tools that solve a problem for you. This is the basis for DevOps principles that you can apply in day-to-day work.
+## Features
 
-💡 Are you just looking for a 👉 [Rust template](https://github.com/alfredodeza/rust-template) to get started easily with a project? The [template](https://github.com/alfredodeza/rust-template) has everything you need!
+- Downloads HTML content from any URL
+- Parses HTML and extracts table data
+- Converts table data to CSV format
+- Command-line interface for easy usage
 
-This repository is part of the Python and Rust CLI tools course:
-
-- [1: Resources](https://github.com/alfredodeza/python-and-rust-tools) 
-- [2: Python CLI](https://github.com/alfredodeza/python-cli-example)
-- [3: Rust CLI](https://github.com/alfredodeza/rust-cli-example)  👈 You are here!
-- [4: Python Advanced CLI](https://github.com/alfredodeza/advanced-python-cli)
-- [5: Rust Advanced CLI](https://github.com/alfredodeza/advanced-rust-cli)
-
-
-## Practice Lab
-Use the [included practice lab](./lab.md) to apply the content you've learned in this week. Follow the steps to create your own repository and apply the requirements to complete the lab.
-
-## Setting up your environment
-Rust development requires certain tools to be installed on your system. The easiest way to do this is to use the [rustup](https://rustup.rs/) tool. This will install the Rust compiler and Cargo, the Rust package manager. Although you can install it in Linux using the package manager, I recommend using `rustup`. Use the following command or go through the [rustup.rs](https://rustup.rs/) website to install it.
+## Getting Started
 
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# Run the application with a URL
+cargo run -- "https://example.com/page-with-tables"
+
+# Or after building
+./target/debug/html_table_csv_converter "https://example.com/page-with-tables"
 ```
 
-This repository and video course focuses on the development side of command-line tools in Rust. It uses [Visual Studio Code](https://code.visualstudio.com/?WT.mc_id=academic-0000-alfredodeza) as the editor of choice. You can use any editor you like, but the instructions in this repository will be for VS Code.
+## Dependencies
 
-These are all the tools and editor extensions I recommend you install to get started:
+The application uses the following Rust crates:
+- `clap` - Command line argument parsing
+- `reqwest` - HTTP client for downloading HTML (in full version)
+- `scraper` - HTML parsing (in full version)  
+- `csv` - CSV writing (in full version)
+- `anyhow` - Error handling (in full version)
 
-- [Visual Studio Code](https://code.visualstudio.com/?WT.mc_id=academic-0000-alfredodeza)
-- [Rust and Cargo tools](https://rustup.rs/)
-- [Rust Analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer&WT.mc_id=academic-0000-alfredodeza)
-- [GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot&WT.mc_id=academic-0000-alfredodeza)
+## Current Implementation
 
-As part of your development workflow, I highly suggest you use the following programs in the terminal regularly:
+The current implementation includes:
 
-- `cargo fmt` - Formats your code to the Rust standard
-- `cargo clippy` - Lints your code and helps you find errors and potential issues
-- `cargo check` - Checks your code for errors and allows you to fix them before compiling (which means its faster!)
+1. **URL argument parsing** - Uses clap to handle command line arguments
+2. **HTML downloading** - Simulated in basic version, would use reqwest in full version
+3. **HTML table parsing** - Basic regex-like parsing in current version
+4. **CSV conversion** - Converts extracted table data to CSV format
+5. **Error handling** - Proper error handling and user feedback
 
+## Example Output
 
-## Resources
-Explore additional content that you can use to learn more about the topics covered in this course.
+For a table like:
+```html
+<table>
+  <tr><th>Name</th><th>Age</th><th>City</th></tr>
+  <tr><td>John Doe</td><td>25</td><td>New York</td></tr>
+  <tr><td>Jane Smith</td><td>30</td><td>Los Angeles</td></tr>
+</table>
+```
 
-- [Releasing](./resources/releasing.md)
+The output will be:
+```csv
+"Name","Age","City"
+"John Doe","25","New York"  
+"Jane Smith","30","Los Angeles"
+```
 
-**Coursera Courses**
+## Building
 
-- [Linux and Bash for Data Engineering](https://www.coursera.org/learn/linux-and-bash-for-data-engineering-duke)
-- [Open Source Platforms for MLOps](https://www.coursera.org/learn/open-source-platforms-duke)
-- [Python Essentials for MLOps](https://www.coursera.org/learn/python-essentials-mlops-duke)
-- [Web Applications and Command-Line tools for Data Engineering](https://www.coursera.org/learn/web-app-command-line-tools-for-data-engineering-duke)
-- [Python and Pandas for Data Engineering](https://www.coursera.org/learn/python-and-pandas-for-data-engineering-duke)
-- [Scripting with Python and SQL for Data Engineering](https://www.coursera.org/learn/scripting-with-python-sql-for-data-engineering-duke)
+To build the project:
+```bash
+cargo build --release
+```
 
-**O'Reilly Courses and Books**
-
-- [Python for DevOps](https://www.oreilly.com/library/view/python-for-devops/9781492057680/) (Book)
-- [Practical MLOps](https://www.oreilly.com/library/view/practical-mlops/9781098103002/) (Book)
-- [Linux For Beginners](https://learning.oreilly.com/videos/-/27922450VIDEOPAIML/) (Video)
-- [GitHub Codespaces Course](https://learning.oreilly.com/videos/-/27724023VIDEOPAIML/) (Video)
-- [Python Command-line Tools course](https://learning.oreilly.com/videos/python-command-line/50131VIDEOPAIML/) (Video)
+To run tests:
+```bash
+cargo test
+```

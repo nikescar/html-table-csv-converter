@@ -1,25 +1,34 @@
 use clap::{Command, Arg};
 use clap::ColorChoice;
-use blkrs::run_lsblk;
+use html_table_csv_converter::process_url_to_csv;
+use std::process;
 
 fn main() {
-    let matches = Command::new("lsblk")
-        .version("0.0.1")
-        .author("Alfredo Deza")
-        .about("lsblk in Rust")
+    let matches = Command::new("html-table-csv-converter")
+        .version("0.1.0")
+        .author("HTML Table CSV Converter")
+        .about("Downloads HTML from URL and converts tables to CSV")
         .color(ColorChoice::Always)
         .arg(
-            Arg::new("device")
-                .help("Device to query")
+            Arg::new("url")
+                .help("URL to download and extract tables from")
                 .required(true)
                 .index(1)
         )
         .get_matches();
 
-    if let Some(device) = matches.get_one::<String>("device") {
-        let output = serde_json::to_string(&run_lsblk(&device)).unwrap();
-        println!("{}", output);
+    if let Some(url) = matches.get_one::<String>("url") {
+        match process_url_to_csv(url) {
+            Ok(csv_output) => {
+                println!("{}", csv_output);
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(1);
+            }
+        }
     } else {
-        println!("No device provided");
+        eprintln!("No URL provided");
+        process::exit(1);
     }
 }
