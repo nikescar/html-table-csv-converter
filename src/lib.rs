@@ -1,5 +1,38 @@
+// CSV configuration options
+#[derive(Debug, Clone)]
+pub struct CsvOptions {
+    pub delimiter: char,
+    pub quote_mode: QuoteMode,
+    pub no_header: bool,
+    pub quote_columns: Vec<usize>, // 1-based column indices
+    pub show_fields: Vec<usize>,   // 1-based column indices to show
+}
+
+#[derive(Debug, Clone)]
+pub enum QuoteMode {
+    Never,
+    Always,
+    AsNeeded,
+}
+
+impl Default for CsvOptions {
+    fn default() -> Self {
+        Self {
+            delimiter: ',',
+            quote_mode: QuoteMode::AsNeeded,
+            no_header: false,
+            quote_columns: Vec::new(),
+            show_fields: Vec::new(),
+        }
+    }
+}
+
 // A robust HTML table parser without external dependencies
 pub fn extract_table_from_html(html: &str) -> Result<String, String> {
+    extract_table_from_html_with_options(html, CsvOptions::default())
+}
+
+pub fn extract_table_from_html_with_options(html: &str, options: CsvOptions) -> Result<String, String> {
     let mut csv_output = String::new();
     
     // Convert to lowercase for case-insensitive matching
@@ -18,10 +51,18 @@ pub fn extract_table_from_html(html: &str) -> Result<String, String> {
             // Extract rows from this table
             let rows = extract_table_rows(table_html);
             
-            // Convert rows to CSV
-            for row in rows {
+            // Skip header if no_header option is set
+            let rows_to_process = if options.no_header && !rows.is_empty() {
+                &rows[1..]
+            } else {
+                &rows
+            };
+            
+            // Convert rows to CSV with options
+            for row in rows_to_process {
                 if !row.is_empty() {
-                    csv_output.push_str(&row.join(","));
+                    let formatted_row = format_row_with_options(row, &options);
+                    csv_output.push_str(&formatted_row);
                     csv_output.push('\n');
                 }
             }
@@ -99,7 +140,7 @@ fn extract_row_cells(row_html: &str) -> Vec<String> {
                 if content_start < content_end {
                     let cell_content = &row_html[content_start..content_end];
                     let cleaned = clean_cell_content(cell_content);
-                    cells.push(format!("\"{}\"", cleaned));
+                    cells.push(cleaned);
                 }
             }
             
@@ -127,17 +168,72 @@ fn clean_cell_content(content: &str) -> String {
         }
     }
     
-    // Clean up whitespace and escape commas
+    // Clean up whitespace 
     cleaned.trim()
         .replace('\n', " ")
         .replace('\r', " ")
         .replace('\t', " ")
-        .replace(',', ";")
         .chars()
         .collect::<String>()
         .split_whitespace()
         .collect::<Vec<&str>>()
         .join(" ")
+}
+
+fn format_row_with_options(row: &[String], options: &CsvOptions) -> String {
+    // Filter columns if show_fields is specified
+    let row_to_process: Vec<&String> = if !options.show_fields.is_empty() {
+        options.show_fields
+            .iter()
+            .filter_map(|&col_index| {
+                if col_index > 0 && col_index <= row.len() {
+                    Some(&row[col_index - 1]) // Convert 1-based to 0-based indexing
+                } else {
+                    None
+                }
+            })
+            .collect()
+    } else {
+        row.iter().collect()
+    };
+
+    let formatted_cells: Vec<String> = row_to_process
+        .iter()
+        .enumerate()
+        .map(|(displayed_index, cell)| {
+            // For quoting logic, we need the original column index
+            let original_index = if !options.show_fields.is_empty() {
+                // Find the original index for this displayed column
+                options.show_fields.get(displayed_index).copied().unwrap_or(1) - 1
+            } else {
+                displayed_index
+            };
+
+            let should_quote = match options.quote_mode {
+                QuoteMode::Never => false,
+                QuoteMode::Always => true,
+                QuoteMode::AsNeeded => {
+                    // Quote if contains delimiter, quotes, or newlines
+                    cell.contains(options.delimiter) || cell.contains('"') || cell.contains('\n')
+                }
+            };
+            
+            // Override with specific column quoting if specified
+            let should_quote = if !options.quote_columns.is_empty() {
+                options.quote_columns.contains(&(original_index + 1)) // 1-based indexing
+            } else {
+                should_quote
+            };
+            
+            if should_quote {
+                format!("\"{}\"", cell.replace('"', "\"\"")) // Escape quotes
+            } else {
+                (*cell).clone()
+            }
+        })
+        .collect();
+    
+    formatted_cells.join(&options.delimiter.to_string())
 }
 
 // Download HTML from a URL using ureq
@@ -161,6 +257,12 @@ pub fn download_html(url: &str) -> Result<String, String> {
 pub fn process_url_to_csv(url: &str) -> Result<String, String> {
     let html = download_html(url)?;
     let csv = extract_table_from_html(&html)?;
+    Ok(csv)
+}
+
+pub fn process_url_to_csv_with_options(url: &str, options: CsvOptions) -> Result<String, String> {
+    let html = download_html(url)?;
+    let csv = extract_table_from_html_with_options(&html, options)?;
     Ok(csv)
 }
 
@@ -279,10 +381,10 @@ mod tests {
         println!("Test result:\n{}", result);
         
         // Check that we have the header row
-        assert!(result.contains("\"Name\",\"Age\",\"City\""));
+        assert!(result.contains("Name,Age,City"));
         // Check that we have the data rows
-        assert!(result.contains("\"John Doe\",\"25\",\"New York\""));
-        assert!(result.contains("\"Jane Smith\",\"30\",\"Los Angeles\""));
+        assert!(result.contains("John Doe,25,New York"));
+        assert!(result.contains("Jane Smith,30,Los Angeles"));
     }
 
     #[test]
@@ -297,7 +399,76 @@ mod tests {
         let result = extract_table_from_html(simple_html).unwrap();
         println!("Simple test result:\n{}", result);
         
-        assert!(result.contains("\"IP\",\"Hostname\""));
-        assert!(result.contains("\"192.168.1.1\",\"router\""));
+        assert!(result.contains("IP,Hostname"));
+        assert!(result.contains("192.168.1.1,router"));
     }
+
+    #[test]
+    fn test_csv_options() {
+        let test_html = r#"
+        <table>
+            <tr><th>Name</th><th>Description</th></tr>
+            <tr><td>Test Item</td><td>Item with, comma</td></tr>
+            <tr><td>Test|Pipe</td><td>Normal text</td></tr>
+        </table>
+        "#;
+        
+        // Test with always quote
+        let options = CsvOptions {
+            delimiter: ',',
+            quote_mode: QuoteMode::Always,
+            no_header: false,
+            quote_columns: Vec::new(),
+            show_fields: Vec::new(),
+        };
+        let result = extract_table_from_html_with_options(test_html, options).unwrap();
+        assert!(result.contains("\"Name\",\"Description\""));
+        assert!(result.contains("\"Test Item\",\"Item with, comma\""));
+        
+        // Test with pipe delimiter  
+        let options = CsvOptions {
+            delimiter: '|',
+            quote_mode: QuoteMode::AsNeeded,
+            no_header: false,
+            quote_columns: Vec::new(),
+            show_fields: Vec::new(),
+        };
+        let result = extract_table_from_html_with_options(test_html, options).unwrap();
+        println!("Pipe delimiter result:\n{}", result);
+        assert!(result.contains("Name|Description"));
+        // When using pipe delimiter, comma doesn't need quoting but pipe does
+        assert!(result.contains("Test Item|Item with, comma"));
+        assert!(result.contains("\"Test|Pipe\"|Normal text"));
+        
+        // Test no header
+        let options = CsvOptions {
+            delimiter: ',',
+            quote_mode: QuoteMode::AsNeeded,
+            no_header: true,
+            quote_columns: Vec::new(),
+            show_fields: Vec::new(),
+        };
+        let result = extract_table_from_html_with_options(test_html, options).unwrap();
+        assert!(!result.contains("Name,Description"));
+        assert!(result.contains("Test Item,\"Item with, comma\""));
+        
+        // Test show fields - only column 1 (Name)
+        let options = CsvOptions {
+            delimiter: ',',
+            quote_mode: QuoteMode::AsNeeded,
+            no_header: false,
+            quote_columns: Vec::new(),
+            show_fields: vec![1],
+        };
+        let result = extract_table_from_html_with_options(test_html, options).unwrap();
+        println!("Show fields result:\n{}", result);
+        assert!(result.contains("Name"));
+        assert!(result.contains("Test Item"));
+        assert!(result.contains("Test|Pipe")); // No quotes needed since we're using comma delimiter
+        // Should not contain the Description column (column 2)
+        assert!(!result.contains("Description"));
+        assert!(!result.contains("Item with, comma"));
+        assert!(!result.contains("Normal text"));
+    }
+
 }
