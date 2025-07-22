@@ -18,34 +18,6 @@ This Rust application downloads HTML content from a URL, extracts HTML tables, a
 - Column-specific quoting
 - Column filtering (show only specified columns)
 
-## Getting Started
-
-```bash
-# Basic usage - download and convert tables from a URL
-cargo run -- "https://example.com/page-with-tables"
-
-# Use pipe delimiter instead of comma
-cargo run -- -d "|" "https://example.com/page-with-tables"
-
-# Always quote all fields
-cargo run -- --quote-fields always "https://example.com/page-with-tables"
-
-# Remove headers from output
-cargo run -- --no-header "https://example.com/page-with-tables"
-
-# Quote only specific columns (1-based indexing)
-cargo run -- --quote-columns "1,3" "https://example.com/page-with-tables"
-
-# Show only specific columns
-cargo run -- --show-fields "1,3" "https://example.com/page-with-tables"
-
-# Combine options
-cargo run -- -d ";" --quote-fields never --no-header --show-fields "2,4" "https://example.com/page-with-tables"
-
-# Or after building
-./target/release/html-table-csv-converter --help
-```
-
 ## Dependencies
 
 The application uses the following Rust crates:
@@ -85,6 +57,32 @@ cargo run -- https://gist.githubusercontent.com/bella92/4184664/raw/82982ace341d
 ```
 
 </details>
+
+## Getting Started
+
+```bash
+# Basic usage - download and convert tables from a URL
+$ html-table-csv-converter "https://example.com/page-with-tables"
+
+# Use pipe delimiter instead of comma
+$ html-table-csv-converter -d "|" "https://example.com/page-with-tables"
+
+# Always quote all fields
+$ html-table-csv-converter --quote-fields always "https://example.com/page-with-tables"
+
+# Remove headers from output
+$ html-table-csv-converter --no-header "https://example.com/page-with-tables"
+
+# Quote only specific columns (1-based indexing)
+$ html-table-csv-converter --quote-columns "1,3" "https://example.com/page-with-tables"
+
+# Show only specific columns
+$ html-table-csv-converter --show-fields "1,3" "https://example.com/page-with-tables"
+
+# Combine options
+$ html-table-csv-converter -d ";" --quote-fields never --no-header --show-fields "2,4" "https://example.com/page-with-tables"
+
+```
 
 ## Command Line Options
 
