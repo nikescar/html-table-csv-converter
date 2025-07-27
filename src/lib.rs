@@ -182,19 +182,19 @@ fn clean_cell_content(content: &str) -> String {
 
 fn format_row_with_options(row: &[String], options: &CsvOptions) -> String {
     // Filter columns if show_fields is specified
-    let row_to_process: Vec<&String> = if !options.show_fields.is_empty() {
+    let row_to_process: Vec<String> = if !options.show_fields.is_empty() {
         options.show_fields
             .iter()
-            .filter_map(|&col_index| {
+            .map(|&col_index| {
                 if col_index > 0 && col_index <= row.len() {
-                    Some(&row[col_index - 1]) // Convert 1-based to 0-based indexing
+                    row[col_index - 1].clone() // Convert 1-based to 0-based indexing
                 } else {
-                    None
+                    String::new() // Return empty string for missing columns
                 }
             })
             .collect()
     } else {
-        row.iter().collect()
+        row.to_vec()
     };
 
     let formatted_cells: Vec<String> = row_to_process
@@ -228,7 +228,7 @@ fn format_row_with_options(row: &[String], options: &CsvOptions) -> String {
             if should_quote {
                 format!("\"{}\"", cell.replace('"', "\"\"")) // Escape quotes
             } else {
-                (*cell).clone()
+                cell.clone()
             }
         })
         .collect();
