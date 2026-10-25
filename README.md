@@ -18,49 +18,14 @@ This Rust application downloads HTML content from a URL, extracts HTML tables, a
 - Column-specific quoting
 - Column filtering (show only specified columns)
 
-## Dependencies
-
-The application uses the following Rust crates:
-- `clap` - Command line argument parsing
-- `ureq` - HTTP client for downloading HTML with rustls TLS support
-
-## Current Implementation
-
-The current implementation includes:
-
-1. **URL argument parsing** - Uses clap to handle command line arguments with extensive options
-2. **HTML downloading** - Uses ureq HTTP client with rustls TLS support
-3. **HTML table parsing** - Robust HTML table parsing without external HTML parsing dependencies
-4. **CSV conversion** - Converts extracted table data to CSV format with customizable options:
-   - Configurable delimiter (comma, pipe, semicolon, etc.)
-   - Flexible quoting modes (never, always, as-needed)
-   - Header removal option
-   - Column-specific quoting
-   - Column filtering to show only specified fields
-5. **Error handling** - Proper error handling and user feedback
-
-## Building
-
-To build the project:
-```bash
-cargo build --release
-```
-
-To run tests:
-```bash
-cargo test
-```
-
-To run example:
-```bash
-cargo run -- https://gist.githubusercontent.com/bella92/4184664/raw/82982ace341d5a579ad53b53a47bcf58c7dea5ee/1.%2520Fresh-fruits
-```
-
 </details>
 
 ## Getting Started
 
 ```bash
+# Install with cargo
+$ cargo install --git https://github.com/nikescar/html-table-csv-converter.git
+
 # Basic usage - download and convert tables from a URL
 $ html-table-csv-converter "https://example.com/page-with-tables"
 
